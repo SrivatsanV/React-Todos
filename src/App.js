@@ -1,57 +1,55 @@
-import React, { Component } from 'react';
-import './App.css';
-import Todos from './components/Todos'; 
-import AddTodo from './components/AddTodo';
+import React, { Component } from "react";
+import "./App.css";
+import Todos from "./components/Todos";
+import AddTodo from "./components/AddTodo";
+import axios from "axios";
 
 class App extends Component {
-  state={
-    todos:[
-      {
-        id:1,
-        title:'Milk',
-        completed:false
-      },
-      {
-        id:2,
-        title:'Learn',
-        completed:false
-      },
-      {
-        id:3,
-        title:'GSOC',
-        completed:false
-      }
-    ]
+  state = {
+    todos: []
+  };
+
+  componentDidMount() {
+    axios
+      .get("http://localhost:5000/todos")
+      .then(res => this.setState({ todos: res.data }));
   }
 
-  markComplete = (id)=>{
-      this.setState( {todos: this.state.todos.map(todo => {
-        if(todo.id === id)
-          todo.completed=!todo.completed;
+  markComplete = id => {
+    axios.patch(`http://localhost:5000/todos/${id}`).then(res =>
+      this.setState({
+        todos: this.state.todos.map(todo => {
+          if (todo._id === id) todo.completed = !todo.completed;
+          return todo;
+        })
+      })
+    );
+  };
 
-        return todo;
-      }) 
-    });
-  }
-
-  deleteTodo = (id) => {
-    this.setState({todos: [...this.state.todos.filter(todo => todo.id!==id)]});
-  }
-
-  addTodo = (title) => {
-      const newTodo = {
-        id:4,
-        title:title,
-        completed:false
-      }
-      this.setState({todos: [...this.state.todos,newTodo]});
-  }
+  deleteTodo = id => {
+    axios.delete(`http://localhost:5000/todos/${id}`).then(res =>
+      this.setState({
+        todos: [...this.state.todos.filter(todo => todo._id !== id)]
+      })
+    );
+  };
+  addTodo = title => {
+    axios
+      .post("http://localhost:5000/todos", {
+        title: title
+      })
+      .then(res => this.setState({ todos: [...this.state.todos, res.data] }));
+  };
   render() {
     return (
       <div className="App">
         <h1>TodosList</h1>
-        <AddTodo addTodo={this.addTodo}/>
-        <Todos todos= {this.state.todos} markComplete={this.markComplete} deleteTodo={this.deleteTodo}/>
+        <AddTodo addTodo={this.addTodo} />
+        <Todos
+          todos={this.state.todos}
+          markComplete={this.markComplete}
+          deleteTodo={this.deleteTodo}
+        />
       </div>
     );
   }
